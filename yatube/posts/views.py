@@ -8,7 +8,7 @@ from .models import Follow, Group, Post, User
 from yatube.settings import MAX_POST_ON_PAGE
 
 
-@cache_page(20)
+# @cache_page(20)
 def index(request):
     post_list = Post.objects.all()
     paginator = Paginator(post_list, MAX_POST_ON_PAGE)

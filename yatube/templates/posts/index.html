@@ -5,8 +5,8 @@
 {% block content %}
 {% include 'posts/includes/switcher.html' %}
 {% load thumbnail %}
-    {% comment %} {% load cache %} {% endcomment %}
-    {% comment %} {% cache 20 index_page %} {% endcomment %}
+    {% load cache %}
+    {% cache 20 index_page %}
         {% for post in page_obj %}
             <ul>
                 <li>
@@ -31,6 +31,6 @@
             {% endif %}
             {% if not forloop.last %}<hr>{% endif %}
         {% endfor %}
-    {% comment %} {% endcache %} {% endcomment %}
+    {% endcache %}
     {% include 'posts/includes/paginator.html' %}
 {% endblock content %}
