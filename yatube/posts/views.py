@@ -156,10 +156,11 @@ def follow_index(request):
 def profile_follow(request, username):
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    follow = Follow()
-    follow.user = user
-    follow.author = author
-    follow.save()
+    if not user.id == author.id:
+        follow = Follow()
+        follow.user = user
+        follow.author = author
+        follow.save()
     return redirect('posts:profile', username=username)
 
 
