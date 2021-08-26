@@ -37,7 +37,7 @@ def profile(request, username):
     user_author = get_object_or_404(User, username=username)
     following = False
 
-    if request.user.id is not None:
+    if request.user.id is not None and not request.user.id == user_author.id:
         user_request = User.objects.get(id=request.user.id)
         follow = Follow.objects.filter(
             user=user_request.id, author=user_author.id)
