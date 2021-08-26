@@ -311,7 +311,9 @@ class PostsFollowTest(TestCase):
         response = self.client_follower.post(self.url_unfollow, follow=True)
         self.assertRedirects(response, self.url_profile)
 
-    def test_context_follo_page(self):
+    def test_context_follow_page(self):
+        print(f' ---- {self.client_follower}')
+        print(f' ---- {self.client_post_creator}')
         self.client_follower.post(self.url_follow)
         response = self.client_follower.get(reverse('posts:follow_index'))
         post = response.context['page_obj'][0]

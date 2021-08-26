@@ -34,13 +34,12 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
+    # user_follower = get_object_or_404(User, username=request.user.username)
     user_author = get_object_or_404(User, username=username)
     following = False
-
-    if request.user.id is not None and not request.user.id == user_author.id:
-        user_request = User.objects.get(id=request.user.id)
+    if request.user.id is not None:
         follow = Follow.objects.filter(
-            user=user_request.id, author=user_author.id)
+            user=request.user.id, author=user_author.id).all()
         if follow.count() > 0:
             following = True
 
@@ -139,11 +138,7 @@ def follow_index(request):
     post_list = []
     for follow in follows:
         post_list.extend(follow.author.posts.all())
-        print(follow.author.username)
-        print(len(post_list))
-        print(post_list)
     paginator = Paginator(post_list, MAX_POST_ON_PAGE)
-    print(request.GET.get('page'))
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -156,9 +151,9 @@ def follow_index(request):
 def profile_follow(request, username):
     user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    if not user.id == author.id:
+    if user.id != author.id:
         current_follow = Follow.objects.filter(user=user, author=author).all()
-        if current_follow.count == 0:
+        if current_follow.count() == 0:
             follow = Follow()
             follow.user = user
             follow.author = author
