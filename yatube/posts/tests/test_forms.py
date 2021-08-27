@@ -43,11 +43,6 @@ class PostPageTest(TestCase):
             text='Тестовый пост 1',
             group=cls.group,
             author=cls.user)
-        # cls.comment = Comment.objects.create(
-        #     text='Тестовый комментарий',
-        #     post=cls.post,
-        #     author=cls.user
-        # )
 
     def setUp(self):
         self.authorized_client = Client()

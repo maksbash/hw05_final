@@ -305,15 +305,15 @@ class PostsFollowTest(TestCase):
         self.client_follower.force_login(user_follower)
         cache.clear()
 
-    def test_user_follow_unfollow_redirect(self):
+    def test_user_follow_redirect(self):
         response = self.client_follower.post(self.url_follow, follow=True)
         self.assertRedirects(response, self.url_profile)
+
+    def test_user_unfollow_redirect(self):
         response = self.client_follower.post(self.url_unfollow, follow=True)
         self.assertRedirects(response, self.url_profile)
 
-    def test_context_follow_page(self):
-        print(f' ---- {self.client_follower}')
-        print(f' ---- {self.client_post_creator}')
+    def test_follow_page(self):
         self.client_follower.post(self.url_follow)
         response = self.client_follower.get(reverse('posts:follow_index'))
         post = response.context['page_obj'][0]
@@ -321,6 +321,12 @@ class PostsFollowTest(TestCase):
             post.text,
             self.text_of_post,
             'Подписка не работает')
+
+    def test_unfollow_page(self):
+        self.client_follower.post(self.url_follow)
         self.client_follower.post(self.url_unfollow)
         response = self.client_follower.get(reverse('posts:follow_index'))
-        self.assertEqual(len(response.context['page_obj']), 0)
+        self.assertEqual(
+            len(response.context['page_obj']),
+            0,
+            'Отписка не работает')

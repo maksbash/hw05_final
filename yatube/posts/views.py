@@ -34,13 +34,10 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
-    # user_follower = get_object_or_404(User, username=request.user.username)
     user_author = get_object_or_404(User, username=username)
     following = False
     if request.user.id is not None:
-        follow = Follow.objects.filter(
-            user=request.user.id, author=user_author.id).all()
-        if follow.count() > 0:
+        if Follow.objects.filter(user=request.user.id, author=user_author.id).exists():
             following = True
 
     post_list = user_author.posts.all()
@@ -133,8 +130,7 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    user = get_object_or_404(User, username=request.user.username)
-    follows = user.follower.all()
+    follows = request.user.follower.all()
     post_list = []
     for follow in follows:
         post_list.extend(follow.author.posts.all())
@@ -149,13 +145,12 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    if user.id != author.id:
-        current_follow = Follow.objects.filter(user=user, author=author).all()
+    if request.user.id != author.id:
+        current_follow = Follow.objects.filter(user=request.user, author=author).all()
         if current_follow.count() == 0:
             follow = Follow()
-            follow.user = user
+            follow.user = request.user
             follow.author = author
             follow.save()
     return redirect('posts:profile', username=username)
@@ -163,8 +158,7 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    user = get_object_or_404(User, username=request.user.username)
     author = get_object_or_404(User, username=username)
-    follow = Follow.objects.filter(user=user, author=author)
+    follow = Follow.objects.filter(user=request.user, author=author)
     follow.delete()
     return redirect('posts:profile', username=username)
