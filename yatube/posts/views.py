@@ -37,7 +37,8 @@ def profile(request, username):
     user_author = get_object_or_404(User, username=username)
     following = False
     if request.user.id is not None:
-        if Follow.objects.filter(user=request.user.id, author=user_author.id).exists():
+        if Follow.objects.filter(
+                user=request.user.id, author=user_author.id).exists():
             following = True
 
     post_list = user_author.posts.all()
@@ -147,7 +148,8 @@ def follow_index(request):
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     if request.user.id != author.id:
-        current_follow = Follow.objects.filter(user=request.user, author=author).all()
+        current_follow = Follow.objects.filter(
+            user=request.user, author=author).all()
         if current_follow.count() == 0:
             follow = Follow()
             follow.user = request.user
