@@ -23,6 +23,15 @@ class IndexView(ListView):
         return paginator.get_page(self.page_number)
 
 
+class FollowIndexView(LoginRequiredMixin, IndexView):
+    template_name = 'posts/follow.html'
+
+    def get(self, request, *args, **kwargs):
+        self.post_list = Post.objects.filter(
+            author__following__user=request.user)
+        return super().get(request, *args, **kwargs)
+
+
 class GroupView(IndexView):
     template_name = 'posts/group_list.html'
 
@@ -35,8 +44,8 @@ class GroupView(IndexView):
 
     def get_context_data(self, **kwargs):
         context = super(GroupView, self).get_context_data(**kwargs)
-        context['title'] = self.title,
-        context['group'] = self.group,
+        context['title'] = self.title
+        context['group'] = self.group
         return context
 
 
@@ -63,58 +72,6 @@ class ProfileView(IndexView):
         context['author'] = self.author
         context['following'] = self.following
         return context
-
-
-def index(request):
-    post_list = Post.objects.all()
-    paginator = Paginator(post_list, MAX_POST_ON_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/index.html', context)
-
-
-def group_posts(request, slug):
-    group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.all()
-    paginator = Paginator(post_list, MAX_POST_ON_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    title = f'Записи сообщества {group.title}'
-    context = {
-        'title': title,
-        'group': group,
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/group_list.html', context)
-
-
-def profile(request, username):
-    user_author = get_object_or_404(User, username=username)
-    following = False
-    if request.user.id is not None:
-        if Follow.objects.filter(
-                user=request.user.id, author=user_author.id).exists():
-            following = True
-
-    post_list = user_author.posts.all()
-    paginator = Paginator(post_list, MAX_POST_ON_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    author = user_author.get_full_name()
-    title = f'Профайл пользователя {author}'
-    count_of_posts = post_list.count()
-    context = {
-        'title': title,
-        'count_of_posts': count_of_posts,
-        'author': user_author,
-        'page_obj': page_obj,
-        'following': following,
-    }
-    print(context)
-    return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
@@ -186,27 +143,6 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
-
-
-class FollowIndexView(LoginRequiredMixin, IndexView):
-    template_name = 'posts/follow.html'
-
-    def get(self, request, *args, **kwargs):
-        self.post_list = Post.objects.filter(
-            author__following__user=request.user)
-        return super().get(request, *args, **kwargs)
-
-@login_required
-def follow_index(request):
-    post_list = Post.objects.filter(
-        author__following__user=request.user)
-    paginator = Paginator(post_list, MAX_POST_ON_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/follow.html', context)
 
 
 @login_required
