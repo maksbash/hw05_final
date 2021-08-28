@@ -8,7 +8,11 @@ app_name = 'posts'
 urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
     path('group/<slug:slug>/', views.GroupView.as_view(), name='group_posts'),
-    path('profile/<str:username>/', views.ProfileView.as_view(), name='profile'),
+    path(
+        'profile/<str:username>/',
+        views.ProfileView.as_view(),
+        name='profile'
+    ),
     path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
     path('posts/<int:post_id>/edit/', views.post_edit, name='post_edit'),
     path('create/', views.post_create, name='post_create'),
