@@ -1,10 +1,68 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic import TemplateView, ListView
 
 from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post, User
 from yatube.settings import MAX_POST_ON_PAGE
+
+
+class IndexView(ListView):
+    template_name = 'posts/index.html'
+    context_object_name = 'page_obj'
+    post_list = Post.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        self.page_number = self.request.GET.get('page')
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        paginator = Paginator(self.post_list, MAX_POST_ON_PAGE)
+        return paginator.get_page(self.page_number)
+
+
+class GroupView(IndexView):
+    template_name = 'posts/group_list.html'
+
+    def get(self, request, *args, **kwargs):
+        slug = kwargs['slug']
+        self.group = get_object_or_404(Group, slug=slug)
+        self.post_list = self.group.posts.all()
+        self.title = f'Записи сообщества {self.group.title}'
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(GroupView, self).get_context_data(**kwargs)
+        context['title'] = self.title,
+        context['group'] = self.group,
+        return context
+
+
+class ProfileView(IndexView):
+    template_name = 'posts/profile.html'
+
+    def get(self, request, *args, **kwargs):
+        author_username = kwargs['username']
+        self.author = get_object_or_404(User, username=author_username)
+        self.following = False
+        if request.user.id is not None:
+            if Follow.objects.filter(
+                    user=request.user.id, author=self.author.id).exists():
+                self.following = True
+        
+        self.post_list = self.author.posts.all()
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProfileView, self).get_context_data(**kwargs)
+        title = f'Профайл пользователя {self.author.get_full_name()}'
+        context['title'] = title
+        context['count_of_posts'] = self.post_list.count()
+        context['author'] = self.author
+        context['following'] = self.following
+        return context
 
 
 def index(request):
@@ -55,6 +113,7 @@ def profile(request, username):
         'page_obj': page_obj,
         'following': following,
     }
+    print(context)
     return render(request, 'posts/profile.html', context)
 
 
@@ -128,6 +187,14 @@ def add_comment(request, post_id):
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
 
+
+class FollowIndexView(LoginRequiredMixin, IndexView):
+    template_name = 'posts/follow.html'
+
+    def get(self, request, *args, **kwargs):
+        self.post_list = Post.objects.filter(
+            author__following__user=request.user)
+        return super().get(request, *args, **kwargs)
 
 @login_required
 def follow_index(request):
